@@ -1,39 +1,52 @@
-document.getElementById('webhook-form').addEventListener('submit', async function(event) {
-  event.preventDefault();
-
-  // Gunakan ID yang konsisten dengan HTML
-  const contentInput = document.getElementById('content-input');
-  const content = contentInput.value;
-  const responseContainer = document.getElementById('response-container');
-  const submitButton = document.getElementById('submit-button'); // Asumsi tombol submit punya ID ini
-
-  // UI Feedback
-  responseContainer.textContent = 'Mengirim...';
-  if (submitButton) submitButton.disabled = true;
-
-  try {
-    const response = await fetch('/send-to-n8n', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      // KIRIM DENGAN KEY 'content'
-      body: JSON.stringify({ content: content })
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      responseContainer.textContent = 'Sukses: ' + (result.message || 'Data berhasil dikirim!');
-      contentInput.value = ''; // Kosongkan input setelah berhasil
-    } else {
-      // Tampilkan pesan error dari server
-      responseContainer.textContent = 'Error: ' + (result.error || 'Terjadi kesalahan.');
+// File: public/script.js
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('webhook-form');
+    if (!form) {
+        console.error("Form with id 'webhook-form' not found!");
+        return;
     }
-  } catch (error) {
-    responseContainer.textContent = 'Gagal terhubung ke server.';
-    console.error('Error:', error);
-  } finally {
-    if (submitButton) submitButton.disabled = false;
-  }
+
+    const contentInput = document.getElementById('content-input');
+    const submitButton = document.getElementById('submit-button');
+    const responseContainer = document.getElementById('response-container');
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const contentValue = contentInput.value;
+        
+        // UI Feedback
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sending...';
+        responseContainer.innerHTML = '';
+
+        try {
+            // URL MENGGUNAKAN "source" DARI vercel.json
+            const response = await fetch('/send-to-n8n', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // BODY DI-STRINGIFY DAN MENGGUNAKAN KEY "content"
+                body: JSON.stringify({ content: contentValue }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                // Tampilkan error dari server
+                throw new Error(result.error || `Request failed with status ${response.status}`);
+            }
+
+            responseContainer.innerHTML = `<div class="bg-green-100 text-green-800 p-4 rounded-md">${result.message}</div>`;
+            contentInput.value = ''; // Kosongkan input
+            
+        } catch (error) {
+            responseContainer.innerHTML = `<div class="bg-red-100 text-red-800 p-4 rounded-md">Error: ${error.message}</div>`;
+            console.error('Fetch error:', error);
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Trigger Webhook';
+        }
+    });
 });
