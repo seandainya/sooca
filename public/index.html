@@ -3,17 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kirim Data ke n8n</title>
+    <title>N8N Webhook Sender</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Formulir Webhook n8n</h1>
-    <form id="webhook-form">
-        <label for="message">Pesan:</label><br>
-        <input type="text" id="message" name="message" required><br><br>
-        <button type="submit">Kirim</button>
-    </form>
-    <div id="response-container"></div>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
-    <script src="script.js"></script>
+    <main class="w-full max-w-2xl bg-white rounded-lg shadow-md p-8">
+        <h1 class="text-3xl font-bold text-gray-800 text-center mb-4">Send to N8N Workflow</h1>
+        
+        <!-- ID FORM ADALAH 'webhook-form' -->
+        <form id="webhook-form">
+            <!-- ID TEXTAREA ADALAH 'content-input' -->
+            <textarea id="content-input" placeholder="Paste your content here..." class="w-full h-48 p-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-shadow duration-200" required></textarea>
+            
+            <!-- ID TOMBOL ADALAH 'submit-button' -->
+            <button type="submit" id="submit-button" class="mt-4 w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors duration-200">
+                Trigger Webhook
+            </button>
+        </form>
+
+        <!-- ID CONTAINER RESPONS ADALAH 'response-container' -->
+        <div id="response-container" class="mt-4 text-center"></div>
+    </main>
+
+    <script src="/script.js"></script>
 </body>
 </html>
