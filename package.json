@@ -1,6 +1,6 @@
 {
-  "name": "n8n-vercel-frontend",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {}
+    "name": "n8n-vercel-frontend",
+    "version": "1.0.0",
+    "private": true,
+    "dependencies": {}
 }
