@@ -5,10 +5,10 @@ export default async function handler(request, response) {
   }
 
   try {
-    const { url, keyword, country } = request.body;
+    const { url, keyword, gl } = request.body;
 
-    if (!url || !keyword || !country) {
-      return response.status(400).json({ error: 'URL, Keyword, and Country are required.' });
+    if (!url || !keyword || !gl) {
+      return response.status(400).json({ error: 'URL, Keyword, and Country (gl) are required.' });
     }
 
     const webhookUrl = process.env.N8N_WEBHOOK_URL;
@@ -29,13 +29,11 @@ export default async function handler(request, response) {
     const n8nResponse = await fetch(webhookUrl, {
       method: 'POST',
       headers: headers,
-      body: JSON.stringify({ url, keyword, country }),
+      body: JSON.stringify({ url, keyword, gl }),
     });
 
-    // Cek jika body respons kosong
     const responseText = await n8nResponse.text();
     if (!responseText) {
-      // Jika n8n tidak mengirim balik body, anggap sukses tapi beri pesan
       return response.status(200).json({
         message: 'Request sent to n8n, but no content was returned.',
         n8nResponse: { aiResponse: "Workflow processed. No specific data returned." }
@@ -59,7 +57,6 @@ export default async function handler(request, response) {
 
   } catch (error) {
     console.error('Unexpected error in function:', error);
-    // Cek apakah error karena parsing JSON
     if (error instanceof SyntaxError) {
       return response.status(500).json({ error: "Received an invalid response from the workflow server." });
     }

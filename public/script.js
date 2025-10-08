@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const url = urlInput.value;
         const keyword = keywordInput.value;
-        const country = countrySelect.value;
+        const gl = countrySelect.value;
 
         submitButton.disabled = true;
         submitButton.innerHTML = `
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ url, keyword, country }),
+                body: JSON.stringify({ url, keyword, gl }),
             });
 
             const result = await response.json();
