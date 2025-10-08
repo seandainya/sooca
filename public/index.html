@@ -4,41 +4,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N8N Webhook Sender</title>
-    <!-- Ini akan memberikan styling modern -->
+    <title>AI Content Optimizer</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen py-12">
 
     <main class="w-full max-w-2xl bg-white rounded-lg shadow-md p-8">
-        <h1 class="text-3xl font-bold text-gray-800 text-center mb-4">Send to N8N Workflow</h1>
+        <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">AI Content Optimizer</h1>
 
-        <!-- ID form ini adalah 'webhook-form' -->
-        <form id="webhook-form">
-            <!-- ID textarea ini adalah 'content-input', SANGAT PENTING -->
-            <textarea id="content-input" placeholder="Paste your content here..."
-                class="w-full h-48 p-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-shadow duration-200"
-                required></textarea>
+        <form id="webhook-form" class="space-y-6">
+            <div>
+                <label for="url-input" class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                <input type="url" id="url-input" placeholder="https://example.com/article"
+                    class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-shadow duration-200"
+                    required>
+            </div>
 
-            <!-- ID tombol ini adalah 'submit-button' -->
+            <div>
+                <label for="keyword-input" class="block text-sm font-medium text-gray-700 mb-1">Keyword</label>
+                <input type="text" id="keyword-input" placeholder="e.g., Digital Marketing"
+                    class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-shadow duration-200"
+                    required>
+            </div>
+
+            <div>
+                <label for="country-select" class="block text-sm font-medium text-gray-700 mb-1">Negara</label>
+                <select id="country-select"
+                    class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-shadow duration-200"
+                    required>
+                    <option value="" disabled selected>Pilih Negara</option>
+                    <option value="Indonesia">Indonesia</option>
+                    <option value="United States">United States</option>
+                    <option value="Singapore">Singapore</option>
+                    <option value="Malaysia">Malaysia</option>
+                    <option value="Australia">Australia</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="Japan">Japan</option>
+                </select>
+            </div>
+
             <button type="submit" id="submit-button"
                 class="mt-4 w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors duration-200">
-                Trigger Webhook
+                Optimize Content
             </button>
         </form>
 
-        <!-- ID container respons ini adalah 'response-container' -->
         <div id="response-container" class="mt-4 text-center"></div>
-        <!-- TAMBAHKAN CONTAINER BARU UNTUK HASIL AI -->
+
         <div id="ai-result-container"
-            class="mt-6 p-6 bg-gray-50 border border-gray-200 rounded-lg whitespace-pre-wrap text-left">
-            <!-- whitespace-pre-wrap akan menjaga format teks seperti paragraf dan baris baru -->
-            <!-- Hasil AI akan ditampilkan di sini -->
+            class="hidden mt-6 p-6 bg-gray-50 border border-gray-200 rounded-lg whitespace-pre-wrap text-left">
         </div>
     </main>
 
-    <!-- Pastikan path ke script.js benar -->
     <script src="/script.js"></script>
 </body>
 

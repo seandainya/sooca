@@ -1,19 +1,24 @@
-// File: public/script.js
 document.addEventListener('DOMContentLoaded', () => {
-    // ... (ambil elemen form, button, dll. seperti sebelumnya)
-    const contentInput = document.getElementById('content-input');
-    const responseContainer = document.getElementById('response-container');
-    const aiResultContainer = document.getElementById('ai-result-container'); // Ambil container baru
     const form = document.getElementById('webhook-form');
-    const submitButton = document.getElementById('submit-button');
+    if (!form) {
+        console.error("Form with id 'webhook-form' not found!");
+        return;
+    }
 
+    const urlInput = document.getElementById('url-input');
+    const keywordInput = document.getElementById('keyword-input');
+    const countrySelect = document.getElementById('country-select');
+    const submitButton = document.getElementById('submit-button');
+    const responseContainer = document.getElementById('response-container');
+    const aiResultContainer = document.getElementById('ai-result-container');
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
-        const contentValue = contentInput.value;
+        const url = urlInput.value;
+        const keyword = keywordInput.value;
+        const country = countrySelect.value;
 
-        // UI Feedback - Reset tampilan sebelum mengirim
         submitButton.disabled = true;
         submitButton.innerHTML = `
             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -22,16 +27,16 @@ document.addEventListener('DOMContentLoaded', () => {
             </svg>
             Processing...`;
         responseContainer.innerHTML = '';
-        aiResultContainer.textContent = ''; // Kosongkan hasil AI sebelumnya
-        aiResultContainer.classList.add('hidden'); // Sembunyikan container
+        aiResultContainer.textContent = '';
+        aiResultContainer.classList.add('hidden');
 
         try {
-            const response = await fetch('/send-to-n8n', { /* ... (method, headers) ... */
+            const response = await fetch('/send-to-n8n', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ content: contentValue })
+                body: JSON.stringify({ url, keyword, country }),
             });
 
             const result = await response.json();
@@ -40,16 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(result.error || `Request failed with status ${response.status}`);
             }
 
-            // --- INI BAGIAN BARUNYA ---
-            // Cek apakah ada respons dari n8n dan ada properti aiResponse di dalamnya
             if (result.n8nResponse && result.n8nResponse.aiResponse) {
                 responseContainer.innerHTML = `<div class="bg-green-100 text-green-800 p-4 rounded-md">${result.message}</div>`;
-
-                // Tampilkan hasil AI di container yang baru
                 aiResultContainer.textContent = result.n8nResponse.aiResponse;
-                aiResultContainer.classList.remove('hidden'); // Tampilkan kembali container
+                aiResultContainer.classList.remove('hidden');
             } else {
-                // Jika tidak ada respons AI, tampilkan pesan error
                 throw new Error("AI response not found in the server's reply.");
             }
 
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Fetch error:', error);
         } finally {
             submitButton.disabled = false;
-            submitButton.innerHTML = 'Trigger Webhook';
+            submitButton.innerHTML = 'Optimize Content';
         }
     });
 });
