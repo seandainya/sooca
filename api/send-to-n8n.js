@@ -5,10 +5,11 @@ export default async function handler(request, response) {
   }
 
   try {
-    const { url, keyword, gl } = request.body;
+    const { url, keyword, gl, location, hl } = request.body;
 
-    if (!url || !keyword || !gl) {
-      return response.status(400).json({ error: 'URL, Keyword, and Country (gl) are required.' });
+    // Sekarang location juga wajib
+    if (!url || !keyword || !gl || !location || !hl) {
+      return response.status(400).json({ error: 'URL, Keyword, Country (gl), Location, and Language (hl) are required.' });
     }
 
     const webhookUrl = process.env.N8N_WEBHOOK_URL;
@@ -29,7 +30,7 @@ export default async function handler(request, response) {
     const n8nResponse = await fetch(webhookUrl, {
       method: 'POST',
       headers: headers,
-      body: JSON.stringify({ url, keyword, gl }),
+      body: JSON.stringify({ url, keyword, gl, location, hl }),
     });
 
     const responseText = await n8nResponse.text();

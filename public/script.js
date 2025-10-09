@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlInput = document.getElementById('url-input');
     const keywordInput = document.getElementById('keyword-input');
     const countrySelect = document.getElementById('country-select');
+    const languageSelect = document.getElementById('language-select');
     const submitButton = document.getElementById('submit-button');
     const responseContainer = document.getElementById('response-container');
     const aiResultContainer = document.getElementById('ai-result-container');
@@ -17,7 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const url = urlInput.value;
         const keyword = keywordInput.value;
-        const gl = countrySelect.value;
+        const hl = languageSelect.value;
+
+        // --- PERUBAHAN DI SINI ---
+        const gl = countrySelect.value; // Ambil kode negara (e.g., "ID")
+        const selectedOption = countrySelect.options[countrySelect.selectedIndex];
+        const location = selectedOption.text; // Ambil nama negara (e.g., "Indonesia")
 
         submitButton.disabled = true;
         submitButton.innerHTML = `
@@ -36,7 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ url, keyword, gl }),
+                // Kirim kedua parameter baru
+                body: JSON.stringify({ url, keyword, gl, location, hl }),
             });
 
             const result = await response.json();
