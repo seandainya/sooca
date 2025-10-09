@@ -6,6 +6,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Content Optimizer</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <!-- 1. Tambahkan Library Marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- 2. Tambahkan Styling untuk Hasil Markdown -->
+    <style>
+        #ai-result-container h1,
+        #ai-result-container h2,
+        #ai-result-container h3 {
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+
+        #ai-result-container h1 {
+            font-size: 1.5rem;
+        }
+
+        #ai-result-container h2 {
+            font-size: 1.25rem;
+        }
+
+        #ai-result-container ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        #ai-result-container li {
+            margin-bottom: 0.25rem;
+        }
+
+        #ai-result-container strong {
+            font-weight: 600;
+        }
+
+        #ai-result-container p {
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 flex items-center justify-center min-h-screen py-12">
@@ -14,20 +56,19 @@
         <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">AI Content Optimizer</h1>
 
         <form id="webhook-form" class="space-y-6">
+            <!-- Isi form Anda tetap sama -->
             <div>
                 <label for="url-input" class="block text-sm font-medium text-gray-700 mb-1">URL</label>
                 <input type="url" id="url-input" placeholder="https://example.com/article"
                     class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-shadow duration-200"
                     required>
             </div>
-
             <div>
                 <label for="keyword-input" class="block text-sm font-medium text-gray-700 mb-1">Keyword</label>
                 <input type="text" id="keyword-input" placeholder="e.g., Digital Marketing"
                     class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-shadow duration-200"
                     required>
             </div>
-
             <div>
                 <label for="country-select" class="block text-sm font-medium text-gray-700 mb-1">Negara</label>
                 <select id="country-select"
@@ -43,19 +84,6 @@
                     <option value="JP">Japan</option>
                 </select>
             </div>
-
-            <div>
-                <label for="language-select" class="block text-sm font-medium text-gray-700 mb-1">Bahasa</label>
-                <select id="language-select"
-                    class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-shadow duration-200"
-                    required>
-                    <option value="id" selected>Bahasa Indonesia (id)</option>
-                    <option value="en">English (en)</option>
-                    <option value="ms">Bahasa Melayu (ms)</option>
-                    <option value="ja">日本語 (ja)</option>
-                </select>
-            </div>
-
             <button type="submit" id="submit-button"
                 class="mt-4 w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors duration-200">
                 Optimize Content

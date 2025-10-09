@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlInput = document.getElementById('url-input');
     const keywordInput = document.getElementById('keyword-input');
     const countrySelect = document.getElementById('country-select');
-    const languageSelect = document.getElementById('language-select');
     const submitButton = document.getElementById('submit-button');
     const responseContainer = document.getElementById('response-container');
     const aiResultContainer = document.getElementById('ai-result-container');
@@ -19,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = urlInput.value;
         const keyword = keywordInput.value;
         const gl = countrySelect.value;
-        const hl = languageSelect.value;
 
         submitButton.disabled = true;
         submitButton.innerHTML = `
@@ -29,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </svg>
             Processing...`;
         responseContainer.innerHTML = '';
-        aiResultContainer.textContent = '';
+        aiResultContainer.innerHTML = ''; // Gunakan innerHTML agar bisa di-reset
         aiResultContainer.classList.add('hidden');
 
         try {
@@ -38,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ url, keyword, gl, hl }),
+                body: JSON.stringify({ url, keyword, gl }),
             });
 
             const result = await response.json();
@@ -49,8 +47,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (result.n8nResponse && result.n8nResponse.aiResponse) {
                 responseContainer.innerHTML = `<div class="bg-green-100 text-green-800 p-4 rounded-md">${result.message}</div>`;
-                aiResultContainer.textContent = result.n8nResponse.aiResponse;
+
+                // --- PERUBAHAN DI SINI ---
+                // 1. Ambil teks Markdown dari respons AI
+                const markdownText = result.n8nResponse.aiResponse;
+
+                // 2. Ubah Markdown menjadi HTML menggunakan library marked.js
+                const htmlOutput = marked.parse(markdownText);
+
+                // 3. Tampilkan hasilnya sebagai HTML, bukan teks biasa
+                aiResultContainer.innerHTML = htmlOutput;
                 aiResultContainer.classList.remove('hidden');
+
             } else {
                 throw new Error("AI response not found in the server's reply.");
             }
