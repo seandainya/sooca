@@ -4,7 +4,6 @@ export default async function handler(request, response) {
     }
 
     try {
-        // Ambil path webhook dan data form dari body request
         const { webhookPath, formData } = request.body;
 
         if (!webhookPath || !formData) {
@@ -16,10 +15,10 @@ export default async function handler(request, response) {
         const password = process.env.N8N_PASSWORD;
 
         if (!baseURL || !username || !password) {
+            console.error('FATAL: Missing n8n environment variables on the server.');
             return response.status(500).json({ error: 'Server configuration error.' });
         }
 
-        // Gabungkan base URL dengan path spesifik
         const fullWebhookUrl = `${baseURL.replace(/\/$/, '')}${webhookPath}`;
 
         const credentials = Buffer.from(`${username}:${password}`).toString('base64');
@@ -30,7 +29,7 @@ export default async function handler(request, response) {
                 'Content-Type': 'application/json',
                 'Authorization': `Basic ${credentials}`,
             },
-            body: JSON.stringify(formData), // Kirim hanya data form
+            body: JSON.stringify(formData),
         });
 
         const responseText = await n8nResponse.text();
@@ -38,7 +37,14 @@ export default async function handler(request, response) {
             return response.status(200).json({ message: 'Request sent to n8n, but no content was returned.' });
         }
 
-        const n8nData = JSON.parse(responseText);
+        let n8nData;
+        try {
+            n8nData = JSON.parse(responseText);
+        } catch (e) {
+            // Jika n8n mengembalikan teks non-JSON (misalnya, pesan error HTML), tangani di sini
+            console.error("Failed to parse n8n response as JSON:", responseText);
+            return response.status(502).json({ error: 'Bad Gateway: Received invalid response from workflow server.', details: responseText });
+        }
 
         if (!n8nResponse.ok) {
             return response.status(n8nResponse.status).json({ error: 'Failed to trigger n8n webhook', details: n8nData });
@@ -50,6 +56,7 @@ export default async function handler(request, response) {
         });
 
     } catch (error) {
+        console.error('Error in /api/ai-studio:', error);
         return response.status(500).json({ error: 'An internal server error occurred', details: error.message });
     }
 }
