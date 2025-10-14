@@ -31,17 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentWorkflowId = 'optimizer';
 
     function renderForm(workflowId) {
+        // ... (Fungsi renderForm tetap sama seperti sebelumnya)
         currentWorkflowId = workflowId;
         const wf = workflows[workflowId];
         if (!wf) return;
-
         formContainer.innerHTML = `<h2 class="text-2xl font-semibold text-center mb-6">${wf.name}</h2><form id="workflow-form">${wf.formHTML}</form>`;
-
         const newForm = document.getElementById('workflow-form');
-        if (newForm) {
-            newForm.addEventListener('submit', handleFormSubmit);
-        }
-
+        if (newForm) newForm.addEventListener('submit', handleFormSubmit);
         navButtons.forEach(btn => {
             const isSelected = btn.dataset.workflow === workflowId;
             btn.classList.toggle('bg-blue-500', isSelected);
@@ -83,31 +79,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
             responseContainer.innerHTML = `<div class="bg-green-100 text-green-800 p-4 rounded-md">${result.message || 'Success!'}</div>`;
 
-            // --- LOGIKA BARU YANG LEBIH PINTAR ---
-            let markdownContent = null;
+            const n8nData = result.n8nResponse;
 
-            if (result.n8nResponse) {
-                // Cek properti dari workflow Optimizer
-                if (result.n8nResponse.aiResponse) {
-                    markdownContent = result.n8nResponse.aiResponse;
+            if (n8nData) {
+                // Prioritaskan render output terstruktur jika ada
+                if (n8nData.titleRecommendations && n8nData.revisedContent) {
+                    renderStructuredOutput(n8nData);
                 }
-                // Cek properti dari workflow Executor (setelah direvisi)
-                else if (result.n8nResponse.revisedArticle) {
-                    markdownContent = result.n8nResponse.revisedArticle;
+                // Fallback untuk output lama (Markdown tunggal)
+                else {
+                    const markdownContent = n8nData.aiResponse || n8nData.revisedArticle || n8nData.output || JSON.stringify(n8nData, null, 2);
+                    if (typeof markdownContent === 'string') {
+                        aiResultContainer.innerHTML = marked.parse(markdownContent);
+                    } else {
+                        aiResultContainer.innerHTML = `<pre><code>${JSON.stringify(markdownContent, null, 2)}</code></pre>`;
+                    }
+                    aiResultContainer.classList.remove('hidden');
                 }
-                // Cek properti output AI Agent standar
-                else if (result.n8nResponse.output) {
-                    markdownContent = result.n8nResponse.output;
-                }
-            }
-
-            if (markdownContent && typeof markdownContent === 'string') {
-                aiResultContainer.innerHTML = marked.parse(markdownContent);
-                aiResultContainer.classList.remove('hidden');
-            } else if (result.n8nResponse) {
-                // Fallback: Tampilkan JSON mentah jika tidak ada konten Markdown
-                aiResultContainer.innerHTML = `<pre class="bg-gray-800 text-white p-4 rounded-md text-sm"><code>${JSON.stringify(result.n8nResponse, null, 2)}</code></pre>`;
-                aiResultContainer.classList.remove('hidden');
             }
 
         } catch (error) {
@@ -119,10 +107,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- FUNGSI BARU UNTUK MERENDER OUTPUT TERSTRUKTUR ---
+    function renderStructuredOutput(data) {
+        const container = document.getElementById('ai-result-container');
+        let html = '';
+
+        // 1. Rekomendasi Judul
+        if (data.titleRecommendations && data.titleRecommendations.length > 0) {
+            html += `<h3 class="text-xl font-semibold mb-2 border-b pb-2">1. Rekomendasi Judul</h3><ul class="list-decimal list-inside pl-2 mb-6 space-y-2">`;
+            data.titleRecommendations.forEach(item => {
+                html += `<li class="p-2 bg-white border rounded">${item.title}</li>`;
+            });
+            html += `</ul>`;
+        }
+
+        // 2. Meta Deskripsi
+        if (data.revisedMetaDescription) {
+            html += `<h3 class="text-xl font-semibold mb-2 border-b pb-2">2. Revisi Meta Deskripsi</h3><p class="bg-white p-4 border rounded-md mb-6">${data.revisedMetaDescription}</p>`;
+        }
+
+        // 3. Konten yang Direvisi
+        if (data.revisedContent) {
+            html += `<h3 class="text-xl font-semibold mb-2 border-b pb-2">3. Konten yang Direvisi (Preview)</h3><div class="prose max-w-none mb-6 p-4 border rounded-md bg-white">${marked.parse(data.revisedContent)}</div>`;
+        }
+
+        // 4. FAQ
+        if (data.faqSection && data.faqSection.questions.length > 0) {
+            html += `<h3 class="text-xl font-semibold mb-2 border-b pb-2">4. ${data.faqSection.title || 'FAQ'}</h3><div class="space-y-4 mb-6">`;
+            data.faqSection.questions.forEach(q => {
+                html += `<details class="bg-white p-4 border rounded-md"><summary class="font-semibold cursor-pointer">${q.question}</summary><p class="mt-2 pl-4 text-gray-600">${q.answer}</p></details>`;
+            });
+            html += `</div>`;
+        }
+
+        // 5. Tautan Internal
+        if (data.internalLinkSuggestions && data.internalLinkSuggestions.length > 0) {
+            html += `<h3 class="text-xl font-semibold mb-2 border-b pb-2">5. Saran Tautan Internal</h3><ul class="list-disc pl-5 mb-6">`;
+            data.internalLinkSuggestions.forEach(link => {
+                html += `<li class="mb-1">Tautkan frasa "<b>${link.anchorText}</b>" ke: <a href="${link.targetUrl}" target="_blank" class="text-blue-600 hover:underline">${link.targetUrl}</a></li>`;
+            });
+            html += `</ul>`;
+        }
+
+        container.innerHTML = html;
+        container.classList.remove('hidden');
+    }
+
     navButtons.forEach(button => {
         button.addEventListener('click', () => renderForm(button.dataset.workflow));
     });
 
     renderForm('optimizer');
-
 });
