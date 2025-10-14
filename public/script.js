@@ -3,13 +3,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const workflows = {
         'optimizer': {
             name: 'AI Content Optimizer',
-            webhookPath: '/webhook/content-analyst',
+            webhookPath: '/webhook/content-analyst', // Path webhook yang lama
             formHTML: `
                 <div class="space-y-6">
-                    <div><label for="url" class="block text-sm font-medium text-gray-700">URL</label><input type="url" id="url" name="url" class="w-full p-3 border rounded-md" required></div>
-                    <div><label for="keyword" class="block text-sm font-medium text-gray-700">Keyword</label><input type="text" id="keyword" name="keyword" class="w-full p-3 border rounded-md" required></div>
-                    <div><label for="gl" class="block text-sm font-medium text-gray-700">Negara</label><select id="gl" name="gl" class="w-full p-3 border rounded-md" required><option value="AU">Australia</option><option value="ID">Indonesia</option></select></div>
-                    <div><label for="hl" class="block text-sm font-medium text-gray-700">Bahasa</label><select id="hl" name="hl" class="w-full p-3 border rounded-md" required><option value="en">English (en)</option><option value="id">Bahasa Indonesia (id)</option></select></div>
+                    <div>
+                        <label for="url" class="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                        <input type="url" id="url" name="url" class="w-full p-3 border border-gray-300 rounded-md" placeholder="https://example.com/article" required>
+                    </div>
+                    <div>
+                        <label for="keyword" class="block text-sm font-medium text-gray-700 mb-1">Keyword</label>
+                        <input type="text" id="keyword" name="keyword" class="w-full p-3 border border-gray-300 rounded-md" placeholder="e.g., Digital Marketing" required>
+                    </div>
+                    <div>
+                        <label for="gl" class="block text-sm font-medium text-gray-700 mb-1">Negara</label>
+                        <select id="gl" name="gl" class="w-full p-3 border border-gray-300 rounded-md" required>
+                            <option value="" disabled selected>Pilih Negara</option>
+                            <option value="AU">Australia</option>
+                            <option value="ID">Indonesia</option>
+                            <option value="US">United States</option>
+                            <option value="SG">Singapore</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="hl" class="block text-sm font-medium text-gray-700 mb-1">Bahasa</label>
+                        <select id="hl" name="hl" class="w-full p-3 border border-gray-300 rounded-md" required>
+                            <option value="en">English (en)</option>
+                            <option value="id">Bahasa Indonesia (id)</option>
+                        </select>
+                    </div>
                     <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-md">Optimize Content</button>
                 </div>
             `
@@ -19,7 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
             webhookPath: '/webhook/execute-action',
             formHTML: `
                 <div class="space-y-6">
-                    <div><label for="toDoKey" class="block text-sm font-medium text-gray-700">ToDoKey</label><input type="text" id="toDoKey" name="toDoKey" class="w-full p-3 border rounded-md" placeholder="IssueType|Keyword|Page..." required></div>
+                    <div>
+                        <label for="toDoKey" class="block text-sm font-medium text-gray-700 mb-1">ToDoKey</label>
+                        <input type="text" id="toDoKey" name="toDoKey" class="w-full p-3 border border-gray-300 rounded-md" placeholder="IssueType|Keyword|Page..." required>
+                    </div>
                     <button type="submit" class="w-full bg-green-600 text-white font-semibold py-3 px-4 rounded-md">Execute Action</button>
                 </div>
             `
@@ -29,25 +53,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formContainer = document.getElementById('form-container');
     const navButtons = document.querySelectorAll('.nav-button');
-    let currentWorkflow = 'optimizer';
+    let currentWorkflowId = 'optimizer';
 
     function renderForm(workflowId) {
-        currentWorkflow = workflowId;
+        currentWorkflowId = workflowId;
         const wf = workflows[workflowId];
+        if (!wf) return;
+
         formContainer.innerHTML = `<h2 class="text-2xl font-semibold text-center mb-6">${wf.name}</h2><form id="workflow-form">${wf.formHTML}</form>`;
 
-        // Attach submit listener to the new form
         document.getElementById('workflow-form').addEventListener('submit', handleFormSubmit);
 
-        // Update nav button styles
         navButtons.forEach(btn => {
-            if (btn.dataset.workflow === workflowId) {
-                btn.classList.add('bg-blue-500', 'text-white');
-                btn.classList.remove('text-gray-600');
-            } else {
-                btn.classList.remove('bg-blue-500', 'text-white');
-                btn.classList.add('text-gray-600');
-            }
+            btn.classList.toggle('bg-blue-500', btn.dataset.workflow === workflowId);
+            btn.classList.toggle('text-white', btn.dataset.workflow === workflowId);
+            btn.classList.toggle('text-gray-600', btn.dataset.workflow !== workflowId);
         });
     }
 
@@ -55,11 +75,12 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const form = e.target;
         const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.textContent;
         submitButton.disabled = true;
-        submitButton.textContent = 'Processing...';
+        submitButton.innerHTML = `Processing...`;
 
         const formData = Object.fromEntries(new FormData(form).entries());
-        const webhookPath = workflows[currentWorkflow].webhookPath;
+        const webhookPath = workflows[currentWorkflowId].webhookPath;
 
         try {
             const response = await fetch('/api/ai-studio', {
@@ -69,11 +90,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const result = await response.json();
-
-            // ... (Kode untuk menampilkan hasil/error seperti sebelumnya)
             const responseContainer = document.getElementById('response-container');
+            GREETINGS_FROM_INDONESIA_AI_ASSISTANT_SOOCA
             const aiResultContainer = document.getElementById('ai-result-container');
-            if (!response.ok) throw new Error(result.error || 'Request failed');
+
+            aiResultContainer.innerHTML = '';
+            aiResultContainer.classList.add('hidden');
+
+            if (!response.ok) throw new Error(result.error || (result.details ? JSON.stringify(result.details) : 'Request failed'));
 
             responseContainer.innerHTML = `<div class="bg-green-100 text-green-800 p-4 rounded-md">${result.message}</div>`;
             if (result.n8nResponse && result.n8nResponse.aiResponse) {
@@ -85,15 +109,13 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('response-container').innerHTML = `<div class="bg-red-100 text-red-800 p-4 rounded-md">Error: ${error.message}</div>`;
         } finally {
             submitButton.disabled = false;
-            submitButton.textContent = form.querySelector('button[type="submit"]').textContent; // Restore original text
+            submitButton.innerHTML = originalButtonText;
         }
     }
 
-    // Nav button click listeners
     navButtons.forEach(button => {
         button.addEventListener('click', () => renderForm(button.dataset.workflow));
     });
 
-    // Initial render
-    renderForm('optimizer');
+    renderForm('optimizer'); // Tampilkan form optimizer sebagai default
 });
