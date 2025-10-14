@@ -1,15 +1,62 @@
 export default async function handler(request, response) {
-    // Langsung kirim balik nilai environment variables yang dibaca oleh server
-    const envData = {
-        N8N_BASE_URL_IS_PRESENT: !!process.env.N8N_BASE_URL,
-        N8N_USERNAME_IS_PRESENT: !!process.env.N8N_USERNAME,
-        N8N_PASSWORD_IS_PRESENT: !!process.env.N8N_PASSWORD,
-        // Untuk melihat beberapa karakter pertama dari nilainya (aman)
-        N8N_BASE_URL_VALUE_START: process.env.N8N_BASE_URL ? process.env.N8N_BASE_URL.substring(0, 15) : null,
-    };
+    if (request.method !== 'POST') {
+        return response.status(405).json({ error: 'Method Not Allowed' });
+    }
 
-    return response.status(200).json({
-        message: "Debugging Environment Variables",
-        readValues: envData
-    });
+    try {
+        const { webhookPath, formData } = request.body;
+
+        if (!webhookPath || !formData) {
+            return response.status(400).json({ error: 'webhookPath and formData are required.' });
+        }
+
+        const baseURL = process.env.N8N_BASE_URL;
+        const username = process.env.N8N_USERNAME;
+        const password = process.env.N8N_PASSWORD;
+
+        if (!baseURL || !username || !password) {
+            console.error('FATAL: Missing n8n environment variables on the server.');
+            return response.status(500).json({ error: 'Server configuration error.' });
+        }
+
+        const fullWebhookUrl = `${baseURL.replace(/\/$/, '')}${webhookPath}`;
+
+        const credentials = Buffer.from(`${username}:${password}`).toString('base64');
+
+        const n8nResponse = await fetch(fullWebhookUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Basic ${credentials}`,
+            },
+            body: JSON.stringify(formData),
+        });
+
+        const responseText = await n8nResponse.text();
+        if (!responseText) {
+            return response.status(200).json({ message: 'Request sent to n8n, but no content was returned.' });
+        }
+
+        let n8nData;
+        try {
+            n8nData = JSON.parse(responseText);
+        } catch (e) {
+            // Jika n8n mengembalikan teks non-JSON (misalnya, pesan error HTML), tangani di sini
+            console.error("Failed to parse n8n response as JSON:", responseText);
+            return response.status(502).json({ error: 'Bad Gateway: Received invalid response from workflow server.', details: responseText });
+        }
+
+        if (!n8nResponse.ok) {
+            return response.status(n8nResponse.status).json({ error: 'Failed to trigger n8n webhook', details: n8nData });
+        }
+
+        return response.status(200).json({
+            message: 'Workflow executed successfully!',
+            n8nResponse: n8nData
+        });
+
+    } catch (error) {
+        console.error('Error in /api/ai-studio:', error);
+        return response.status(500).json({ error: 'An internal server error occurred', details: error.message });
+    }
 }
